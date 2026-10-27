@@ -43,23 +43,30 @@ Cole os links, escolha a pasta, clique em **Baixar**. Pronto. Também baixa **s�
 
 Se algum link der erro, os outros continuam sendo baixados normalmente; no fim aparece quantos deram certo.
 
+Os arquivos são salvos como `Título do vídeo [ID].mp4` (ou `.mp3`). O ID no final garante que vídeos diferentes com o mesmo título não se sobrescrevam.
+
+O que mudou em cada versão está no [CHANGELOG](CHANGELOG.md).
+
 ## Problemas comuns
 
 - **Um vídeo que funcionava parou de baixar**: o YouTube muda com frequência.
   - Pelo código: `pip install -U yt-dlp`
   - Pelo .exe: baixe a versão mais nova na página de Releases.
 - **Erro falando de "ffmpeg" ou "ffprobe"** (só rodando pelo código): o FFmpeg não está instalado (veja acima). Depois de instalar, feche e abra o programa de novo.
+- **"Sign in to confirm you're not a bot"**: o YouTube bloqueou temporariamente sua internet por excesso de downloads. Espere algumas horas e tente de novo.
 - **"python não é reconhecido"**: o Python não foi adicionado ao PATH. Reinstale marcando **"Add python.exe to PATH"**.
 
 ## Para desenvolvedores
 
-**Teste** (precisa de internet e FFmpeg): `python test_baixai.py`. Ele baixa um vídeo curto, em vídeo e em MP3, numa pasta temporária e confere que um link inválido é reportado como falha.
+**Teste** (precisa de internet e FFmpeg): `python test_baixai.py`. Ele confere a checagem de nova versão, baixa um vídeo curto (em vídeo e em MP3) numa pasta temporária, confere o ID no nome do arquivo e a barra de progresso, e verifica que um link inválido é reportado como falha.
 
-**Publicar uma versão nova** (o GitHub gera o `.exe` com o yt-dlp mais recente e cria a Release sozinho):
-```
-git tag v1.1.0
-git push origin v1.1.0
-```
+**Publicar uma versão nova** (o GitHub confere o FFmpeg, testa se a janela abre, gera o `.exe` com o yt-dlp mais recente e cria a Release sozinho):
+1. Adicione a versão no [CHANGELOG](CHANGELOG.md) e faça o commit.
+2. Crie e envie a tag:
+   ```
+   git tag v1.3.0
+   git push origin v1.3.0
+   ```
 
 **Gerar o .exe localmente**: baixe o [FFmpeg](https://github.com/yt-dlp/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-win64-gpl-shared.zip), copie o conteúdo da pasta `bin` dele para uma pasta `ffmpeg` dentro do projeto e rode:
 ```
