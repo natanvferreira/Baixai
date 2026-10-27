@@ -1,76 +1,110 @@
 """Baixaí - interface simples para baixar vídeos do YouTube com yt-dlp."""
 import queue
+import sys
 import threading
-import tkinter as tk
 from pathlib import Path
+from tkinter import filedialog, messagebox
 from types import SimpleNamespace
-from tkinter import filedialog, messagebox, scrolledtext
 
+import customtkinter as ctk
 import yt_dlp
 
+# no .exe o FFmpeg vem embutido (pasta "ffmpeg" extraída pelo PyInstaller); rodando pelo código, usa o do sistema
+FFMPEG = Path(getattr(sys, "_MEIPASS", "")) / "ffmpeg"
 
-def baixar(links, pasta, log, mp3=False, playlist=False):
+
+def baixar(links, pasta, log, mp3=False, playlist=False, barra=lambda fracao, texto: None):
     """Baixa cada link em `pasta`; um link com erro não interrompe os outros. Retorna os que falharam."""
+    atual = {"link": 0}
+
+    def progresso(d):
+        total = d.get("total_bytes") or d.get("total_bytes_estimate")
+        if d["status"] == "error" or not total:
+            return
+        info = d["info_dict"]
+        texto = f"Link {atual['link']} de {len(links)}"
+        if info.get("n_entries"):
+            texto += f" · vídeo {info['playlist_index']} de {info['n_entries']}"
+        barra(1 if d["status"] == "finished" else min(d["downloaded_bytes"] / total, 1),f"{texto} · {info.get('title', '')}")
+
     opcoes = {
         "outtmpl": str(Path(pasta) / "%(title)s.%(ext)s"),
-        "post_hooks": [lambda arquivo: log(f"  ✔ {Path(arquivo).name}")],
+        "progress_hooks": [progresso],
+        "post_hooks": [lambda arquivo: log(f"✔ {Path(arquivo).name}")],
         # links de vídeo com "&list=" baixam só o vídeo, a menos que a playlist seja pedida
         "noplaylist": not playlist,
         # um vídeo indisponível dentro da playlist não deve derrubar o resto dela
         "ignoreerrors": "only_download",
-        "logger": SimpleNamespace(debug=lambda m: None, warning=lambda m: None,error=lambda m: log(f"  ✖ {m}")),
+        "logger": SimpleNamespace(debug=lambda m: None, warning=lambda m: None, error=lambda m: log(f"✖ {m}")),
         "quiet": True,
         "noprogress": True,
         "no_warnings": True,
     }
+    if FFMPEG.is_dir():
+        opcoes["ffmpeg_location"] = str(FFMPEG)
     if mp3:
         opcoes["format"] = "bestaudio/best"
         opcoes["postprocessors"] = [{"key": "FFmpegExtractAudio", "preferredcodec": "mp3"}]
     falhas = []
     with yt_dlp.YoutubeDL(opcoes) as ydl:
         for i, link in enumerate(links, 1):
+            atual["link"] = i
             log(f"[{i}/{len(links)}] {link}")
             try:
                 if ydl.download([link]):  # código != 0: algum vídeo falhou (o motivo já saiu pelo logger)
                     falhas.append(link)
             except Exception as e:
-                log(f"  ✖ Erro: {e}")
+                log(f"✖ Erro: {e}")
                 falhas.append(link)
     return falhas
 
 
-class App(tk.Tk):
+class App(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Baixaí - Baixar vídeos do YouTube")
-        self.geometry("700x550")
+        self.title("Baixaí")
+        self.geometry("760x680")
+        self.minsize(560, 560)
         self.mensagens = queue.Queue()
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
 
-        tk.Label(self, text="Cole os links (um por linha):").pack(anchor="w", padx=10, pady=(10, 0))
-        self.links = scrolledtext.ScrolledText(self, height=10)
-        self.links.pack(fill="both", expand=True, padx=10)
+        ctk.CTkLabel(self, text="Baixaí", font=ctk.CTkFont(size=30, weight="bold")).grid(
+            row=0, column=0, sticky="w", padx=24, pady=(20, 0))
+        ctk.CTkLabel(self, text="Cole os links do YouTube abaixo, um por linha", text_color="gray").grid(
+            row=1, column=0, sticky="w", padx=24)
 
-        linha = tk.Frame(self)
-        linha.pack(fill="x", padx=10, pady=10)
-        tk.Label(linha, text="Pasta:").pack(side="left")
-        self.pasta = tk.StringVar(value=str(Path.home() / "Downloads"))
-        tk.Entry(linha, textvariable=self.pasta).pack(side="left", fill="x", expand=True, padx=5)
-        tk.Button(linha, text="Escolher...", command=self.escolher_pasta).pack(side="left")
+        self.links = ctk.CTkTextbox(self, font=ctk.CTkFont(size=14), border_width=1)
+        self.links.grid(row=2, column=0, sticky="nsew", padx=24, pady=(8, 12))
 
-        opcoes = tk.Frame(self)
-        opcoes.pack(fill="x", padx=10, pady=(0, 10))
-        self.mp3 = tk.BooleanVar()
-        self.playlist = tk.BooleanVar()
-        tk.Checkbutton(opcoes, text="Só o áudio (MP3)", variable=self.mp3).pack(side="left")
-        tk.Checkbutton(opcoes, text="Baixar a playlist inteira", variable=self.playlist).pack(side="left", padx=10)
+        linha = ctk.CTkFrame(self, fg_color="transparent")
+        linha.grid(row=3, column=0, sticky="ew", padx=24)
+        linha.grid_columnconfigure(0, weight=1)
+        self.pasta = ctk.StringVar(value=str(Path.home() / "Downloads"))
+        ctk.CTkEntry(linha, textvariable=self.pasta, height=36).grid(row=0, column=0, sticky="ew", padx=(0, 8))
+        ctk.CTkButton(linha, text="Escolher pasta", height=36, width=130, command=self.escolher_pasta).grid(row=0, column=1)
 
-        self.botao = tk.Button(self, text="Baixar", font=("Segoe UI", 12, "bold"), command=self.iniciar)
-        self.botao.pack(pady=(0, 10))
+        opcoes = ctk.CTkFrame(self, fg_color="transparent")
+        opcoes.grid(row=4, column=0, sticky="w", padx=24, pady=12)
+        self.mp3 = ctk.BooleanVar()
+        self.playlist = ctk.BooleanVar()
+        ctk.CTkSwitch(opcoes, text="Só o áudio (MP3)", variable=self.mp3).pack(side="left", padx=(0, 24))
+        ctk.CTkSwitch(opcoes, text="Baixar a playlist inteira", variable=self.playlist).pack(side="left")
 
-        self.saida = scrolledtext.ScrolledText(self, height=10, state="disabled")
-        self.saida.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self.botao = ctk.CTkButton(self, text="Baixar", height=44, font=ctk.CTkFont(size=16, weight="bold"),
+                                   command=self.iniciar)
+        self.botao.grid(row=5, column=0, sticky="ew", padx=24)
 
-        self.after(100, self.atualizar_log)
+        self.status = ctk.CTkLabel(self, text="Pronto para baixar", anchor="w")
+        self.status.grid(row=6, column=0, sticky="ew", padx=24, pady=(14, 0))
+        self.barra = ctk.CTkProgressBar(self, height=12)
+        self.barra.set(0)
+        self.barra.grid(row=7, column=0, sticky="ew", padx=24, pady=(4, 12))
+
+        self.saida = ctk.CTkTextbox(self, height=130, state="disabled", font=ctk.CTkFont(family="Consolas", size=12))
+        self.saida.grid(row=8, column=0, sticky="nsew", padx=24, pady=(0, 20))
+
+        self.after(100, self.atualizar)
 
     def escolher_pasta(self):
         pasta = filedialog.askdirectory(initialdir=self.pasta.get())
@@ -86,27 +120,32 @@ class App(tk.Tk):
         if not Path(pasta).is_dir():
             messagebox.showwarning("Baixaí", "Escolha uma pasta válida.")
             return
-        self.botao.config(state="disabled", text="Baixando...")
+        self.botao.configure(state="disabled", text="Baixando...")
         args = (links, pasta, self.mp3.get(), self.playlist.get())
         threading.Thread(target=self.trabalhar, args=args, daemon=True).start()
 
     def trabalhar(self, links, pasta, mp3, playlist):
-        falhas = baixar(links, pasta, self.mensagens.put, mp3, playlist)
-        self.mensagens.put(f"\nConcluído! {len(links) - len(falhas)} de {len(links)} baixados.\n")
-        self.mensagens.put(None)  # sinaliza fim
+        falhas = baixar(links, pasta, lambda m: self.mensagens.put(("log", m)), mp3, playlist,
+                        lambda f, t: self.mensagens.put(("barra", f, t)))
+        self.mensagens.put(("fim", f"Concluído! {len(links) - len(falhas)} de {len(links)} links baixados."))
 
-    def atualizar_log(self):
+    def atualizar(self):
         # tkinter não é thread-safe: a thread de download só escreve na fila, e a tela lê daqui
         while not self.mensagens.empty():
-            msg = self.mensagens.get()
-            if msg is None:
-                self.botao.config(state="normal", text="Baixar")
+            tipo, *dados = self.mensagens.get()
+            if tipo == "barra":
+                self.barra.set(dados[0])
+                self.status.configure(text=f"{dados[1]} — {dados[0]:.0%}")
                 continue
-            self.saida.config(state="normal")
-            self.saida.insert("end", msg + "\n")
+            if tipo == "fim":
+                self.botao.configure(state="normal", text="Baixar")
+                self.barra.set(1)
+                self.status.configure(text=dados[0])
+            self.saida.configure(state="normal")
+            self.saida.insert("end", dados[0] + "\n")
             self.saida.see("end")
-            self.saida.config(state="disabled")
-        self.after(100, self.atualizar_log)
+            self.saida.configure(state="disabled")
+        self.after(100, self.atualizar)
 
 
 if __name__ == "__main__":

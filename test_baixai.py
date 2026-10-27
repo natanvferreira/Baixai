@@ -7,10 +7,11 @@ from baixai import baixar
 VIDEO = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 
 with tempfile.TemporaryDirectory() as pasta:
-    log = []
-    falhas = baixar([VIDEO, "link-invalido"], pasta, log.append)
+    log, progresso = [], []
+    falhas = baixar([VIDEO, "link-invalido"], pasta, log.append, barra=lambda f, t: progresso.append(f))
     print("\n".join(log))
     assert falhas == ["link-invalido"], falhas
+    assert progresso and progresso[-1] == 1, progresso
     assert any(Path(pasta).iterdir()), "nenhum arquivo baixado"
 
 with tempfile.TemporaryDirectory() as pasta:
