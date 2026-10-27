@@ -18,12 +18,20 @@ jobs:
       - run: pip install -r requirements.txt pyinstaller
       - name: Baixar FFmpeg para embutir no exe
         run: |
-          Invoke-WebRequest https://github.com/yt-dlp/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-win64-gpl-shared.zip -OutFile ff.zip
+          $url = "https://github.com/yt-dlp/FFmpeg-Builds/releases/latest/download"
+          Invoke-WebRequest "$url/ffmpeg-master-latest-win64-gpl-shared.zip" -OutFile ff.zip
+          Invoke-WebRequest "$url/checksums.sha256" -OutFile sums.txt
+          $esperado = (Select-String "win64-gpl-shared.zip" sums.txt).Line.Split()[0]
+          if ((Get-FileHash ff.zip -Algorithm SHA256).Hash -ne $esperado) { throw "Checksum do FFmpeg não confere" }
           Expand-Archive ff.zip ff
           Move-Item ff/*/bin ffmpeg
           Remove-Item ffmpeg/ffplay.exe
       - name: Gravar a versão da tag no programa
-        run: (Get-Content baixai.py -Raw) -replace 'VERSAO = "dev"', 'VERSAO = "${{ github.ref_name }}"' | Set-Content baixai.py -Encoding utf8
+        run: |
+          (Get-Content baixai.py -Raw) -replace 'VERSAO = "dev"', 'VERSAO = "${{ github.ref_name }}"' | Set-Content baixai.py -Encoding utf8
+          if (-not (Select-String 'VERSAO = "v' baixai.py)) { throw "Não achei VERSAO = ""dev"" no baixai.py" }
+      - name: Testar se a janela abre
+        run: python -c "import baixai; baixai.App().destroy()"
       - run: pyinstaller --onefile --windowed --name Baixai --collect-data customtkinter --add-binary "ffmpeg/*;ffmpeg" baixai.py
       - uses: softprops/action-gh-release@v2
         with:
