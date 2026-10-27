@@ -2,7 +2,12 @@
 import tempfile
 from pathlib import Path
 
-from baixai import baixar
+from baixai import baixar, nova_versao
+
+assert nova_versao("dev") is None
+tag, pagina = nova_versao("v0.0.0")
+assert nova_versao(tag) is None
+print("última versão:", tag, pagina)
 
 VIDEO = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 

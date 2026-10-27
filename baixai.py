@@ -1,7 +1,10 @@
 """Baixaí - interface simples para baixar vídeos do YouTube com yt-dlp."""
+import json
 import queue
 import sys
 import threading
+import urllib.request
+import webbrowser
 from pathlib import Path
 from tkinter import filedialog, messagebox
 from types import SimpleNamespace
@@ -11,6 +14,20 @@ import yt_dlp
 
 # no .exe o FFmpeg vem embutido (pasta "ffmpeg" extraída pelo PyInstaller); rodando pelo código, usa o do sistema
 FFMPEG = Path(getattr(sys, "_MEIPASS", "")) / "ffmpeg"
+VERSAO = "dev"  # trocado pela tag (ex.: v1.2.0) no build do GitHub Actions
+RELEASES = "https://api.github.com/repos/natanvferreira/Baixai/releases/latest"
+
+
+def nova_versao(atual=VERSAO):
+    """Retorna (tag, página) da última Release se for diferente da atual; None se igual, sem internet ou rodando pelo código."""
+    if atual == "dev":
+        return None
+    try:
+        with urllib.request.urlopen(RELEASES, timeout=5) as r:
+            release = json.load(r)
+    except Exception:
+        return None
+    return None if release["tag_name"] == atual else (release["tag_name"], release["html_url"])
 
 
 def baixar(links, pasta, log, mp3=False, playlist=False, barra=lambda fracao, texto: None):
@@ -71,6 +88,7 @@ class App(ctk.CTk):
 
         ctk.CTkLabel(self, text="Baixaí", font=ctk.CTkFont(size=30, weight="bold")).grid(
             row=0, column=0, sticky="w", padx=24, pady=(20, 0))
+        self.botao_att = ctk.CTkButton(self, fg_color="#2e9e4f", hover_color="#247a3d")
         ctk.CTkLabel(self, text="Cole os links do YouTube abaixo, um por linha", text_color="gray").grid(
             row=1, column=0, sticky="w", padx=24)
 
@@ -105,6 +123,7 @@ class App(ctk.CTk):
         self.saida.grid(row=8, column=0, sticky="nsew", padx=24, pady=(0, 20))
 
         self.after(100, self.atualizar)
+        threading.Thread(target=lambda: self.mensagens.put(("att", nova_versao())), daemon=True).start()
 
     def escolher_pasta(self):
         pasta = filedialog.askdirectory(initialdir=self.pasta.get())
@@ -133,6 +152,13 @@ class App(ctk.CTk):
         # tkinter não é thread-safe: a thread de download só escreve na fila, e a tela lê daqui
         while not self.mensagens.empty():
             tipo, *dados = self.mensagens.get()
+            if tipo == "att":
+                if dados[0]:
+                    tag, pagina = dados[0]
+                    self.botao_att.configure(text=f"Nova versão {tag} disponível!",
+                                             command=lambda: webbrowser.open(pagina))
+                    self.botao_att.grid(row=0, column=0, sticky="e", padx=24, pady=(20, 0))
+                continue
             if tipo == "barra":
                 self.barra.set(dados[0])
                 self.status.configure(text=f"{dados[1]} — {dados[0]:.0%}")
