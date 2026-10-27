@@ -1,4 +1,4 @@
-# Baixaí
+﻿# Baixaí
 
 Programinha com interface gráfica para baixar **vários vídeos do YouTube de uma vez**, usando o [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
@@ -6,7 +6,7 @@ Cole os links, escolha a pasta, clique em **Baixar**. Pronto. Também baixa **s�
 
 ## Jeito mais fácil: o .exe (Windows)
 
-1. Baixe o `Baixai.exe` na página de [Releases](https://github.com/natanvferreira/Baixa-/releases) do projeto.
+1. Baixe o `Baixai.exe` na página de [Releases](https://github.com/natanvferreira/Baixai/releases) do projeto.
 2. Dê dois cliques nele. Não precisa instalar mais nada: o FFmpeg (usado para o MP3 e para a melhor qualidade de vídeo) já vem dentro do `.exe`.
 
 > O Windows pode mostrar "O Windows protegeu o computador" porque o programa não é assinado. Clique em **Mais informações → Executar assim mesmo**.
@@ -19,7 +19,7 @@ Cole os links, escolha a pasta, clique em **Baixar**. Pronto. Também baixa **s�
 2. **Instale o FFmpeg**: `winget install Gyan.FFmpeg`
 3. **Baixe este projeto**: no GitHub, clique em **Code → Download ZIP** e extraia, ou:
    ```
-   git clone https://github.com/natanvferreira/Baixa-.git
+   git clone https://github.com/natanvferreira/Baixai.git
    ```
 4. **Instale as dependências**, num terminal dentro da pasta do projeto:
    ```
