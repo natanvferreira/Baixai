@@ -3,26 +3,36 @@ import queue
 import threading
 import tkinter as tk
 from pathlib import Path
+from types import SimpleNamespace
 from tkinter import filedialog, messagebox, scrolledtext
 
 import yt_dlp
 
 
-def baixar(links, pasta, log):
+def baixar(links, pasta, log, mp3=False, playlist=False):
     """Baixa cada link em `pasta`; um link com erro não interrompe os outros. Retorna os que falharam."""
     opcoes = {
         "outtmpl": str(Path(pasta) / "%(title)s.%(ext)s"),
         "post_hooks": [lambda arquivo: log(f"  ✔ {Path(arquivo).name}")],
+        # links de vídeo com "&list=" baixam só o vídeo, a menos que a playlist seja pedida
+        "noplaylist": not playlist,
+        # um vídeo indisponível dentro da playlist não deve derrubar o resto dela
+        "ignoreerrors": "only_download",
+        "logger": SimpleNamespace(debug=lambda m: None, warning=lambda m: None,error=lambda m: log(f"  ✖ {m}")),
         "quiet": True,
         "noprogress": True,
         "no_warnings": True,
     }
+    if mp3:
+        opcoes["format"] = "bestaudio/best"
+        opcoes["postprocessors"] = [{"key": "FFmpegExtractAudio", "preferredcodec": "mp3"}]
     falhas = []
     with yt_dlp.YoutubeDL(opcoes) as ydl:
         for i, link in enumerate(links, 1):
             log(f"[{i}/{len(links)}] {link}")
             try:
-                ydl.download([link])
+                if ydl.download([link]):  # código != 0: algum vídeo falhou (o motivo já saiu pelo logger)
+                    falhas.append(link)
             except Exception as e:
                 log(f"  ✖ Erro: {e}")
                 falhas.append(link)
@@ -47,6 +57,13 @@ class App(tk.Tk):
         tk.Entry(linha, textvariable=self.pasta).pack(side="left", fill="x", expand=True, padx=5)
         tk.Button(linha, text="Escolher...", command=self.escolher_pasta).pack(side="left")
 
+        opcoes = tk.Frame(self)
+        opcoes.pack(fill="x", padx=10, pady=(0, 10))
+        self.mp3 = tk.BooleanVar()
+        self.playlist = tk.BooleanVar()
+        tk.Checkbutton(opcoes, text="Só o áudio (MP3)", variable=self.mp3).pack(side="left")
+        tk.Checkbutton(opcoes, text="Baixar a playlist inteira", variable=self.playlist).pack(side="left", padx=10)
+
         self.botao = tk.Button(self, text="Baixar", font=("Segoe UI", 12, "bold"), command=self.iniciar)
         self.botao.pack(pady=(0, 10))
 
@@ -70,10 +87,11 @@ class App(tk.Tk):
             messagebox.showwarning("Baixaí", "Escolha uma pasta válida.")
             return
         self.botao.config(state="disabled", text="Baixando...")
-        threading.Thread(target=self.trabalhar, args=(links, pasta), daemon=True).start()
+        args = (links, pasta, self.mp3.get(), self.playlist.get())
+        threading.Thread(target=self.trabalhar, args=args, daemon=True).start()
 
-    def trabalhar(self, links, pasta):
-        falhas = baixar(links, pasta, self.mensagens.put)
+    def trabalhar(self, links, pasta, mp3, playlist):
+        falhas = baixar(links, pasta, self.mensagens.put, mp3, playlist)
         self.mensagens.put(f"\nConcluído! {len(links) - len(falhas)} de {len(links)} baixados.\n")
         self.mensagens.put(None)  # sinaliza fim
 
