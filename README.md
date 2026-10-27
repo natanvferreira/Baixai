@@ -12,6 +12,8 @@ Cole os links, escolha a pasta, clique em **Baixar**. Pronto. Também baixa **s�
 > O Windows pode mostrar "O Windows protegeu o computador" porque o programa não é assinado. Clique em **Mais informações → Executar assim mesmo**.
 >
 > O programa leva alguns segundos para abrir, porque descompacta o FFmpeg a cada vez.
+>
+> Quando sair uma versão nova, aparece um botão verde **Nova versão disponível!** no topo; clique nele para baixar.
 
 ## Rodando pelo código (Python)
 
