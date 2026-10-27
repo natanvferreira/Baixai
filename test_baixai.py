@@ -17,7 +17,7 @@ with tempfile.TemporaryDirectory() as pasta:
     print("\n".join(log))
     assert falhas == ["link-invalido"], falhas
     assert progresso and progresso[-1] == 1, progresso
-    assert any(Path(pasta).iterdir()), "nenhum arquivo baixado"
+    assert [p.name for p in Path(pasta).iterdir() if "[jNQXAC9IVRw]" in p.name], "arquivo sem o ID no nome"
 
 with tempfile.TemporaryDirectory() as pasta:
     log = []

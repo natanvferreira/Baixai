@@ -42,10 +42,12 @@ def baixar(links, pasta, log, mp3=False, playlist=False, barra=lambda fracao, te
         texto = f"Link {atual['link']} de {len(links)}"
         if info.get("n_entries"):
             texto += f" · vídeo {info['playlist_index']} de {info['n_entries']}"
-        barra(1 if d["status"] == "finished" else min(d["downloaded_bytes"] / total, 1),f"{texto} · {info.get('title', '')}")
+        fracao = 1 if d["status"] == "finished" else min(d["downloaded_bytes"] / total, 1)
+        barra(fracao, f"{texto} · {info.get('title', '')}")
 
     opcoes = {
-        "outtmpl": str(Path(pasta) / "%(title)s.%(ext)s"),
+        # o ID evita que vídeos diferentes com o mesmo título sejam pulados como "já baixados"
+        "outtmpl": str(Path(pasta) / "%(title)s [%(id)s].%(ext)s"),
         "progress_hooks": [progresso],
         "post_hooks": [lambda arquivo: log(f"✔ {Path(arquivo).name}")],
         # links de vídeo com "&list=" baixam só o vídeo, a menos que a playlist seja pedida
@@ -165,7 +167,6 @@ class App(ctk.CTk):
                 continue
             if tipo == "fim":
                 self.botao.configure(state="normal", text="Baixar")
-                self.barra.set(1)
                 self.status.configure(text=dados[0])
             self.saida.configure(state="normal")
             self.saida.insert("end", dados[0] + "\n")
