@@ -16,7 +16,13 @@ jobs:
         with:
           python-version: "3.13"
       - run: pip install -r requirements.txt pyinstaller
-      - run: pyinstaller --onefile --windowed --name Baixai baixai.py
+      - name: Baixar FFmpeg para embutir no exe
+        run: |
+          Invoke-WebRequest https://github.com/yt-dlp/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-win64-gpl-shared.zip -OutFile ff.zip
+          Expand-Archive ff.zip ff
+          Move-Item ff/*/bin ffmpeg
+          Remove-Item ffmpeg/ffplay.exe
+      - run: pyinstaller --onefile --windowed --name Baixai --collect-data customtkinter --add-binary "ffmpeg/*;ffmpeg" baixai.py
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/Baixai.exe
