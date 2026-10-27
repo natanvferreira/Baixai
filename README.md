@@ -69,3 +69,7 @@ pyinstaller --onefile --windowed --name Baixai --collect-data customtkinter --ad
 O arquivo sai em `dist/Baixai.exe`.
 
 O FFmpeg embutido é distribuído sob a licença GPL ([código-fonte](https://github.com/FFmpeg/FFmpeg)).
+
+## Licença
+
+O código do Baixaí está sob a licença [MIT](LICENSE). O FFmpeg embutido no `.exe` é distribuído sob a licença GPL.
