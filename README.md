@@ -4,6 +4,8 @@ Programinha com interface gráfica para baixar **vários vídeos do YouTube de u
 
 Cole os links, escolha a pasta, clique em **Baixar**. Pronto. Também baixa **só o áudio em MP3** e **playlists inteiras**.
 
+Site: <https://natanvferreira.github.io/Baixai/>
+
 ## Jeito mais fácil: o .exe (Windows)
 
 1. Baixe o `Baixai.exe` na página de [Releases](https://github.com/natanvferreira/Baixai/releases) do projeto.

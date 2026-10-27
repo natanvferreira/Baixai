@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baixaí</title>
+<meta name="description" content="Baixe vários vídeos do YouTube de uma vez, ou só o áudio em MP3. Programa gratuito para Windows.">
+<style>
+  :root { --bg: #fafafa; --fg: #1a1a1a; --muted: #5c5c5c; --card: #fff; --line: #e3e3e3; --accent: #1f7a3d; --accent-fg: #fff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141414; --fg: #ececec; --muted: #a3a3a3; --card: #1e1e1e; --line: #2e2e2e; --accent: #3fae63; --accent-fg: #0b1f12; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 56px 16px; }
+  h1 { font-size: 2.6rem; margin: 0 0 8px; }
+  h2 { font-size: 1.3rem; margin: 48px 0 12px; }
+  p { margin: 0 0 12px; }
+  .lead { font-size: 1.2rem; color: var(--muted); }
+  .btn { display: inline-block; margin: 24px 12px 0 0; padding: 12px 22px; border-radius: 8px; font-weight: 600; text-decoration: none; }
+  .primary { background: var(--accent); color: var(--accent-fg); }
+  .secondary { border: 1px solid var(--line); color: var(--fg); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .card strong { display: block; margin-bottom: 4px; }
+  .card span, small, footer { color: var(--muted); }
+  ol { padding-left: 20px; }
+  a { color: var(--accent); }
+  footer { margin-top: 56px; font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Baixaí</h1>
+  <p class="lead">Baixe vários vídeos do YouTube de uma vez. Cole os links, escolha a pasta e clique em Baixar.</p>
+  <a class="btn primary" href="https://github.com/natanvferreira/Baixai/releases/latest/download/Baixai.exe">Baixar para Windows</a>
+  <a class="btn secondary" href="https://github.com/natanvferreira/Baixai">Ver o código</a>
+  <p><small>Grátis, sem anúncios e sem instalação. É só um .exe.</small></p>
+
+  <h2>O que ele faz</h2>
+  <div class="grid">
+    <div class="card"><strong>Vários de uma vez</strong><span>Um link por linha, quantos você quiser.</span></div>
+    <div class="card"><strong>Só o áudio</strong><span>Salva em MP3 com um clique.</span></div>
+    <div class="card"><strong>Playlists inteiras</strong><span>Cole o link da playlist e pronto.</span></div>
+    <div class="card"><strong>Avisa atualização</strong><span>Mostra um botão quando sai versão nova.</span></div>
+  </div>
+
+  <h2>Como usar</h2>
+  <ol>
+    <li>Baixe o <code>Baixai.exe</code> e dê dois cliques.</li>
+    <li>Se o Windows avisar "O Windows protegeu o computador", clique em <strong>Mais informações → Executar assim mesmo</strong>. O aviso aparece porque o programa não é assinado.</li>
+    <li>Cole os links, escolha a pasta e clique em <strong>Baixar</strong>.</li>
+  </ol>
+
+  <footer>
+    Código aberto sob licença MIT, feito com <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>.
+    Para uso pessoal: respeite os direitos de quem cria o conteúdo.
+  </footer>
+</main>
+</body>
+</html>
