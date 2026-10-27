@@ -55,9 +55,15 @@ Se algum link der erro, os outros continuam sendo baixados normalmente; no fim a
 
 **Teste** (precisa de internet e FFmpeg): `python test_baixai.py`. Ele baixa um vídeo curto, em vídeo e em MP3, numa pasta temporária e confere que um link inválido é reportado como falha.
 
-**Gerar o .exe**:
+**Publicar uma versão nova** (o GitHub gera o `.exe` com o yt-dlp mais recente e cria a Release sozinho):
+```
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+**Gerar o .exe localmente**:
 ```
 pip install pyinstaller
 pyinstaller --onefile --windowed --name Baixai baixai.py
 ```
-O arquivo sai em `dist/Baixai.exe`. Publique-o numa Release do GitHub.
+O arquivo sai em `dist/Baixai.exe`.
